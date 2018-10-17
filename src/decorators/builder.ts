@@ -2,14 +2,15 @@ import {Bot} from '../index'
 import * as path from 'path'
 import * as glob from 'glob'
 import StoreMetadata from './StoreMetadata'
+import {getContainer, getFromContainer} from './container'
 export function build(bot: Bot, controllers: string[]) {
     if (!(controllers as any[]).every(value => value instanceof Function))
         (controllers as string[]).forEach(value => glob.sync(path.normalize(value)).filter(file =>
             file.substring(file.length - 5, file.length) !== '.d.ts'
         ).forEach(dir => require(dir)))
-
+    getContainer().set(Bot, bot)
     StoreMetadata.vkControllerMetadata.forEach(controller => {
-        let controllerInstance = new (controller.target as any)(bot)
+        let controllerInstance = getFromContainer(controller.target)
 
         StoreMetadata.getMetadata
             .filter(get => get.target === controller.target.prototype)
